@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
 import { Radar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -16,22 +15,17 @@ ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, 
 const statLabels = ['Wins', 'Losses', 'Draws'];
 
 export default function Compare() {
-  const router = useRouter();
-  const { fighter1: initialFighter1 = '', fighter2: initialFighter2 = '' } = router.query;
-
-  const [fighter1, setFighter1] = useState(initialFighter1);
-  const [fighter2, setFighter2] = useState(initialFighter2);
+  const [fighter1, setFighter1] = useState('');
+  const [fighter2, setFighter2] = useState('');
   const [data1, setData1] = useState(null);
   const [data2, setData2] = useState(null);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (initialFighter1) setFighter1(initialFighter1);
-    if (initialFighter2) setFighter2(initialFighter2);
-  }, [initialFighter1, initialFighter2]);
-
   async function fetchFighter(name, setData) {
-    if (!name) return setData(null);
+    if (!name) {
+      setData(null);
+      return;
+    }
     try {
       const res = await fetch(`/api/fighter?name=${encodeURIComponent(name)}`);
       const json = await res.json();
@@ -76,25 +70,23 @@ export default function Compare() {
     <div style={{ padding: 20 }}>
       <h1>Compare UFC Fighters</h1>
 
-      <div style={{ marginBottom: 10 }}>
-        <input
-          placeholder="Fighter 1"
-          value={fighter1}
-          onChange={(e) => setFighter1(e.target.value)}
-          style={{ marginRight: 10, width: 200 }}
-        />
-        <input
-          placeholder="Fighter 2"
-          value={fighter2}
-          onChange={(e) => setFighter2(e.target.value)}
-          style={{ width: 200 }}
-        />
-      </div>
+      <input
+        placeholder="Fighter 1 name"
+        value={fighter1}
+        onChange={(e) => setFighter1(e.target.value)}
+        style={{ marginRight: 10, width: 200 }}
+      />
+      <input
+        placeholder="Fighter 2 name"
+        value={fighter2}
+        onChange={(e) => setFighter2(e.target.value)}
+        style={{ width: 200 }}
+      />
 
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
       {data1 && data2 ? (
-        <div>
+        <>
           <Radar data={chartData} />
 
           <div style={{ display: 'flex', marginTop: 20 }}>
@@ -104,7 +96,7 @@ export default function Compare() {
               <p><b>Reach:</b> {data1.reach}</p>
               <p><b>Stance:</b> {data1.stance}</p>
               <p><b>Weight Class:</b> {data1.weight_class}</p>
-              <p><b>Date of Birth:</b> {data1.dob}</p>
+              <p><b>DOB:</b> {data1.dob}</p>
               <p><b>Wins:</b> {data1.wins}</p>
               <p><b>Losses:</b> {data1.losses}</p>
               <p><b>Draws:</b> {data1.draws}</p>
@@ -117,16 +109,16 @@ export default function Compare() {
               <p><b>Reach:</b> {data2.reach}</p>
               <p><b>Stance:</b> {data2.stance}</p>
               <p><b>Weight Class:</b> {data2.weight_class}</p>
-              <p><b>Date of Birth:</b> {data2.dob}</p>
+              <p><b>DOB:</b> {data2.dob}</p>
               <p><b>Wins:</b> {data2.wins}</p>
               <p><b>Losses:</b> {data2.losses}</p>
               <p><b>Draws:</b> {data2.draws}</p>
               <a href={data2.url} target="_blank" rel="noreferrer">UFCStats Profile</a>
             </div>
           </div>
-        </div>
+        </>
       ) : (
-        <p>Enter two fighters to compare</p>
+        <p>Enter two fighter names to compare</p>
       )}
     </div>
   );

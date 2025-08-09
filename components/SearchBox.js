@@ -1,34 +1,36 @@
 import { useState, useEffect, useRef } from 'react';
 
-export default function SearchBox({ onSelect, placeholder = 'Search fighter...' }) {
+export default function SearchBox({ onSelect, placeholder }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
-  const debounceTimeout = useRef(null);
+  const debounceTimeout = useRef();
 
   useEffect(() => {
-    if (!query.trim()) {
+    if (!query || query.length < 2) {
       setResults([]);
       setShowDropdown(false);
       return;
     }
+
     clearTimeout(debounceTimeout.current);
     debounceTimeout.current = setTimeout(async () => {
       try {
         const res = await fetch(`/api/fighter?search=${encodeURIComponent(query)}`);
         if (!res.ok) throw new Error('API error');
-        const json = await res.json();
-        setResults(json);
-        setShowDropdown(json.length > 0);
+        const data = await res.json();
+        setResults(data);
+        setShowDropdown(data.length > 0);
       } catch {
         setResults([]);
         setShowDropdown(false);
       }
     }, 300);
+
     return () => clearTimeout(debounceTimeout.current);
   }, [query]);
 
-  function handleSelect(fighter) {
+  function selectResult(fighter) {
     setQuery(fighter.name);
     setShowDropdown(false);
     onSelect(fighter);
@@ -38,10 +40,10 @@ export default function SearchBox({ onSelect, placeholder = 'Search fighter...' 
     <div style={{ position: 'relative', width: 300 }}>
       <input
         type="text"
+        placeholder={placeholder}
         value={query}
         onChange={e => setQuery(e.target.value)}
-        placeholder={placeholder}
-        style={{ width: '100%', padding: '8px', fontSize: '16px' }}
+        style={{ width: '100%', padding: 8, fontSize: 16 }}
         autoComplete="off"
       />
       {showDropdown && (
@@ -53,20 +55,20 @@ export default function SearchBox({ onSelect, placeholder = 'Search fighter...' 
             right: 0,
             maxHeight: 200,
             overflowY: 'auto',
+            backgroundColor: 'white',
             border: '1px solid #ccc',
-            background: 'white',
             margin: 0,
             padding: 0,
             listStyle: 'none',
             zIndex: 1000,
-            cursor: 'pointer',
+            cursor: 'pointer'
           }}
         >
-          {results.map(fighter => (
+          {results.map((fighter) => (
             <li
-              key={fighter.id}
-              onClick={() => handleSelect(fighter)}
-              style={{ padding: '8px', borderBottom: '1px solid #eee' }}
+              key={fighter.url}
+              onClick={() => selectResult(fighter)}
+              style={{ padding: 8, borderBottom: '1px solid #eee' }}
             >
               {fighter.name}
             </li>

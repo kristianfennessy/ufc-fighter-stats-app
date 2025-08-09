@@ -8,7 +8,10 @@ export default async function handler(req, res) {
     // Fetch fighters list
     const fightersRes = await fetch(`${API_BASE}/fighters`);
     if (!fightersRes.ok) return res.status(502).json({ error: 'Failed to fetch fighters list' });
-    const fighters = await fightersRes.json();
+    const json = await fightersRes.json();
+
+    // Fix here — get array from data property if exists
+    const fighters = json.data || json;
 
     const q = name.trim().toLowerCase();
     // Build searchable names
@@ -17,23 +20,8 @@ export default async function handler(req, res) {
       full: ((f.first_name || '') + ' ' + (f.last_name || '')).trim(),
       slug: f.slug || f.id
     }));
-    // Try exact or includes match
+
     let match = candidates.find((c) => (c.full || '').toLowerCase() === q);
     if (!match) match = candidates.find((c) => (c.full || '').toLowerCase().includes(q));
     if (!match) {
-      // Try nickname
-      match = candidates.find((c) => (c.nickname || '').toLowerCase().includes(q));
-    }
-    if (!match) return res.status(404).json({ error: 'Fighter not found' });
-
-    // Fetch fighter details
-    const detailRes = await fetch(`${API_BASE}/fighter/${encodeURIComponent(match.slug)}`);
-    if (!detailRes.ok) return res.status(502).json({ error: 'Failed to fetch fighter details' });
-    const detail = await detailRes.json();
-
-    return res.status(200).json(detail);
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: err.message || 'server error' });
-  }
-}
+      match = candidates.find((

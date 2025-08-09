@@ -8,7 +8,7 @@ import {
   LineElement,
   Filler,
   Tooltip,
-  Legend
+  Legend,
 } from 'chart.js';
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
@@ -22,9 +22,8 @@ export default function Compare() {
   async function fetchStats(fighter) {
     if (!fighter) return null;
     try {
-      // For demo, we scrape their profile page and extract some stats
       const res = await fetch(`/api/fighter-stats?url=${encodeURIComponent(fighter.url)}`);
-      if (!res.ok) throw new Error('Stats fetch error');
+      if (!res.ok) throw new Error('Failed to fetch stats');
       const data = await res.json();
       return data;
     } catch {
@@ -47,19 +46,19 @@ export default function Compare() {
     datasets: [
       {
         label: fighter1?.name || 'Fighter 1',
-        data: stats1 ? labels.map(l => stats1[l.toLowerCase()] || 0) : [],
+        data: stats1 ? labels.map((l) => stats1[l.toLowerCase()] || 0) : [],
         backgroundColor: 'rgba(255, 99, 132, 0.3)',
         borderColor: 'rgba(255, 99, 132, 1)',
-        borderWidth: 1
+        borderWidth: 1,
       },
       {
         label: fighter2?.name || 'Fighter 2',
-        data: stats2 ? labels.map(l => stats2[l.toLowerCase()] || 0) : [],
+        data: stats2 ? labels.map((l) => stats2[l.toLowerCase()] || 0) : [],
         backgroundColor: 'rgba(54, 162, 235, 0.3)',
         borderColor: 'rgba(54, 162, 235, 1)',
-        borderWidth: 1
-      }
-    ]
+        borderWidth: 1,
+      },
+    ],
   };
 
   return (

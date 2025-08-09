@@ -5,21 +5,24 @@ export default async function handler(req, res) {
 
     const API_BASE = 'https://api.octagon-api.com';
 
-    // Fetch fighters list
     const fightersRes = await fetch(`${API_BASE}/fighters`);
-    if (!fightersRes.ok)
-      return res.status(502).json({ error: 'Failed to fetch fighters list' });
+    if (!fightersRes.ok) return res.status(502).json({ error: 'Failed to fetch fighters list' });
 
     const json = await fightersRes.json();
 
-    // Defensive check: get array from data or fallback
+    if (!json) {
+      return res.status(502).json({ error: 'Empty response from fighters API' });
+    }
+
+    if (json.error || json.message) {
+      return res.status(502).json({ error: json.error || json.message });
+    }
+
     const fighters = json.data || json;
 
     if (!Array.isArray(fighters)) {
       console.error('Unexpected API response:', fighters);
-      return res
-        .status(500)
-        .json({ error: 'Unexpected API response format, expected array of fighters' });
+      return res.status(500).json({ error: 'Unexpected API response format, expected array of fighters' });
     }
 
     const q = name.trim().toLowerCase();
@@ -37,10 +40,8 @@ export default async function handler(req, res) {
     }
     if (!match) return res.status(404).json({ error: 'Fighter not found' });
 
-    // Fetch fighter details
     const detailRes = await fetch(`${API_BASE}/fighter/${encodeURIComponent(match.slug)}`);
-    if (!detailRes.ok)
-      return res.status(502).json({ error: 'Failed to fetch fighter details' });
+    if (!detailRes.ok) return res.status(502).json({ error: 'Failed to fetch fighter details' });
 
     const detail = await detailRes.json();
 
